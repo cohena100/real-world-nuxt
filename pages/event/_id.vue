@@ -1,29 +1,116 @@
 <template>
   <div>
-    <h1>Events #{{ id }}</h1>
+    <div class="event-header">
+      <span class="eyebrow">
+        @{{ events.event.time }} on {{ events.event.date }}
+      </span>
+      <h1 class="title">
+        {{ events.event.title }}
+      </h1>
+      <h5>
+        Organized by
+        {{ events.event.organizer ? events.event.organizer.name : '' }}
+      </h5>
+      <h5>Category: {{ events.event.category }}</h5>
+    </div>
+
+    <span name="map">
+      <h2>Location</h2>
+    </span>
+
+    <address>{{ events.event.location }}</address>
+
+    <h2>Event details</h2>
+    <p>{{ events.event.description }}</p>
+
+    <h2>
+      Attendees
+      <span class="badge -fill-gradient">
+        {{ events.event.attendees ? events.event.attendees.length : 0 }}
+      </span>
+    </h2>
+    <ul class="list-group">
+      <li
+        v-for="(attendee, index) in events.event.attendees"
+        :key="index"
+        class="list-item"
+      >
+        <b>{{ attendee.name }}</b>
+      </li>
+    </ul>
   </div>
 </template>
 
 <script>
+import { mapState } from 'vuex'
+
 export default {
   head() {
     return {
-      title: 'Event #' + this.id,
+      title: this.events.event.title,
       meta: [
         {
           hid: 'description',
           name: 'description',
-          content: 'What you need to know about event #' + this.id
+          content: 'What you need to know about ' + this.events.event.title
         }
       ]
     }
   },
-  computed: {
-    id() {
-      return this.$route.params.id
+  computed: mapState(['events']),
+  async fetch({ store, params, error }) {
+    try {
+      await store.dispatch('events/fetchEvent', params.id)
+    } catch (e) {
+      error({
+        statusCode: 503,
+        message: 'Unable to fetch event #' + params.id
+      })
     }
   }
 }
 </script>
 
-<style scoped></style>
+<style scoped>
+.prompt-box {
+  position: relative;
+  overflow: hidden;
+  padding: 1em;
+  margin-bottom: 24px;
+  transform: scaleY(1);
+}
+.prompt-box > .title {
+  margin: 0 0 0.5em;
+}
+.prompt-box > .title > .meta {
+  margin-left: 10px;
+}
+.prompt-box > .actions {
+  display: flex;
+  align-items: center;
+}
+.prompt-box > button {
+  margin-right: 0.5em;
+}
+.prompt-box > button:last-of-type {
+  margin-right: 0;
+}
+.location {
+  margin-bottom: 0;
+}
+.location > .icon {
+  margin-left: 10px;
+}
+.event-header > .title {
+  margin: 0;
+}
+.list-group {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.list-group > .list-item {
+  padding: 1em 0;
+  border-bottom: solid 1px #e5e5e5;
+}
+</style>
